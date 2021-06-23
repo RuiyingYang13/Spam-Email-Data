@@ -1,0 +1,39 @@
+---
+title: "Spam Email Data"
+author: "Ruiying Yang"
+date: "23 Juni 2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, 
+                      results = 'all', 
+                      message = FALSE, 
+                      warning = F, 
+                      cache = FALSE, 
+                      error=TRUE)
+```
+
+# Task 1, Conduct Exploratory Data Analysis (EDA), inspect the data set and preprocess the data
+## Treat missing values, if applicable
+```{r}
+getwd()
+```
+
+```{r}
+# clean environment 
+rm(list = ls())  
+
+# installing packages 
+install.packages("pacman", repos = "http://cran.us.r-project.org")
+library(pacman)
+p_load(ggplot2,    
+       cowplot,   
+       stargazer, 
+       glmnet,    
+       pROC,      
+       caret,       
+       rpart,        
+       rpart.plot)
+
+```
