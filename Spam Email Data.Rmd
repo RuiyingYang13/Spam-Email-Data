@@ -21,12 +21,13 @@ getwd()
 ```
 
 ```{r}
-# clean environment 
-rm(list = ls())  
+# Clean environment 
+ rm(list = ls())  
 
-# installing packages 
-install.packages("pacman", repos = "http://cran.us.r-project.org")
+# Installing packages 
+# install.packages("pacman", repos = "http://cran.us.r-project.org")
 library(pacman)
+library("RColorBrewer")
 p_load(ggplot2,    
        cowplot,   
        stargazer, 
@@ -36,4 +37,132 @@ p_load(ggplot2,
        rpart,        
        rpart.plot)
 
+# Reading in the data
+spam <- read.csv("spam7.csv", sep = ",", stringsAsFactors = T, header = T)
+str(spam)
+summary(spam)
+dollar_t <- table(spam$dollar == 0.00000)
+bang_t <- table(spam$bang == 0.0000)
+money_t <- table(spam$money == 0.00000)
+n000_t <- table(spam$n000 == 0.0000)
+make_t <- table(spam$make == 0.0000)
+
+dollar_t 
+bang_t 
+money_t 
+n000_t 
+make_t 
+
+
+# Inspect the data for explicit and implicit missing values 
+# find explicit NAs
+colSums(is.na(spam))
+# find implicit NAs through empty cells
+apply(spam, 2, function(g) sum(g == "")) 
 ```
+*We can see from the results that there are many zeros in the data, they do not seem to be missing values, so we do not treat them. Other than that, there are no explicit or implicit NAs.*
+
+## Handle sparse classes of categorical predictors, if applicable
+```{r}
+spam_categorical <- spam[,"yesno"]
+table(spam_categorical)
+```
+*There is no need to do any changes to this categorical predictors.*
+
+## Take care of outliers and skewed distributions, if applicable
+For this task, only continuous variables need to be considered.
+To treat outliers we will use `zScores` function:
+```{r}
+zScores <- function(var){
+    mu <- mean(var)
+    sd <-  sd(var)
+    scores <- (var - mu)/sd
+    return(scores)
+}
+```
+
+### `crl.tot`
+```{r}
+ggplot(spam, aes(crl.tot)) +
+          geom_boxplot(na.rm = T,
+                       alpha = 0.15,
+                       fill  = "royalblue",
+                       colour = "grey50") +
+          labs(title = "Total length of words in capitals_original") +
+          theme(plot.title = element_text(color = "royalblue4", size = 12, face = "bold"))
+
+summary(spam$crl.tot)
+x <- zScores(spam$crl.tot)
+summary(x)
+
+spam$crl.tot[x>3]
+spam$crl.tot[x>5]
+spam$crl.tot[x>10]
+
+for (var in c("crl.tot")) {
+  x <- zScores(spam[[var]])
+  new_var <- paste(var, "tr", sep = "_")
+  spam[[new_var]] <- spam[[var]]
+  spam[[new_var]][x > 10] <- mean(spam[[var]], na.rm = T) + 
+  10*sd(spam[[var]], na.rm = T)
+}
+
+summary(spam$crl.tot)
+summary(spam$crl.tot_tr)
+
+par(mfrow = c(1,2))
+boxplot(spam$crl.tot,  # definitely needs treatment
+        main = "Total length of words in capitals",
+        col  = "royalblue4",
+        cex.main = 0.7)
+boxplot(spam$crl.tot_tr,  # definitely needs treatment
+        main = "Total length of words in capitals_truncated",
+        col  = "coral2",
+        cex.main = 0.7)
+
+# examining the distribution of Fare (tickets' prices)
+par(mfrow = c(1,2))
+plot(density(spam$crl.tot_tr),
+     main     = "Total length of words in capitals",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+plot(density(log(spam$crl.tot_tr)),
+     main     = "Total length of words in capitals_log",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+spam$crl.tot_ln <- log(spam$crl.tot_tr) 
+summary(spam)
+
+```
+
+### `dollar`
+```{r}
+ggplot(spam, aes(dollar)) +
+          geom_boxplot(na.rm = T,
+                       alpha = 0.15,
+                       fill  = "royalblue",
+                       colour = "grey50") +
+          labs(title = "Number of occurrences of the $ symbol_original") +
+          theme(plot.title = element_text(color = "royalblue4", size = 12, face = "bold"))
+
+summary(spam$dollar)
+y <- zScores(spam$dollar)
+summary(y)
+
+spam$dollar[y>5]
+
+for (var in c("dollar")) {
+  x <- zScores(spam[[var]])
+  new_var <- paste(var, "tr", sep = "_")
+  spam[[new_var]] <- spam[[var]]
+  spam[[new_var]][x > 5] <- mean(spam[[var]], na.rm = T) + 
+  5*sd(spam[[var]], na.rm = T)
+}
+
+summary(spam$dollar)
+summary(spam$dollar_tr)
+
+```
+
+
+
