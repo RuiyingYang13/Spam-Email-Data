@@ -1,6 +1,6 @@
 ---
 title: "Spam Email Data"
-author: "Ruiying Yang"
+author: "xx"
 date: "23 Juni 2021"
 output: pdf_document
 ---
@@ -35,7 +35,8 @@ p_load(ggplot2,
        pROC,      
        caret,       
        rpart,        
-       rpart.plot)
+       rpart.plot,
+       moments)
 
 # Reading in the data
 spam <- read.csv("spam7.csv", sep = ",", stringsAsFactors = T, header = T)
@@ -84,7 +85,7 @@ zScores <- function(var){
 ### `crl.tot`
 ```{r}
 ggplot(spam, aes(crl.tot)) +
-          geom_boxplot(na.rm = T,
+          geom_density(na.rm = T,
                        alpha = 0.15,
                        fill  = "royalblue",
                        colour = "grey50") +
@@ -97,33 +98,22 @@ summary(x)
 
 spam$crl.tot[x>3]
 spam$crl.tot[x>5]
-spam$crl.tot[x>10]
 
 for (var in c("crl.tot")) {
   x <- zScores(spam[[var]])
   new_var <- paste(var, "tr", sep = "_")
   spam[[new_var]] <- spam[[var]]
-  spam[[new_var]][x > 10] <- mean(spam[[var]], na.rm = T) + 
-  10*sd(spam[[var]], na.rm = T)
+  spam[[new_var]][x > 3] <- mean(spam[[var]], na.rm = T) + 
+  3*sd(spam[[var]], na.rm = T)
 }
 
 summary(spam$crl.tot)
 summary(spam$crl.tot_tr)
 
-par(mfrow = c(1,2))
-boxplot(spam$crl.tot,  # definitely needs treatment
-        main = "Total length of words in capitals",
-        col  = "royalblue4",
-        cex.main = 0.7)
-boxplot(spam$crl.tot_tr,  # definitely needs treatment
-        main = "Total length of words in capitals_truncated",
-        col  = "coral2",
-        cex.main = 0.7)
-
-# examining the distribution of Fare (tickets' prices)
+# examining the distribution of crl.tot_tr
 par(mfrow = c(1,2))
 plot(density(spam$crl.tot_tr),
-     main     = "Total length of words in capitals",
+     main     = "Total length of words in capitals_truncated",
      col      = "royalblue4", 
      cex.main = 0.7)
 plot(density(log(spam$crl.tot_tr)),
@@ -138,7 +128,7 @@ summary(spam)
 ### `dollar`
 ```{r}
 ggplot(spam, aes(dollar)) +
-          geom_boxplot(na.rm = T,
+          geom_density(na.rm = T,
                        alpha = 0.15,
                        fill  = "royalblue",
                        colour = "grey50") +
@@ -149,20 +139,301 @@ summary(spam$dollar)
 y <- zScores(spam$dollar)
 summary(y)
 
-spam$dollar[y>5]
+0.05200+0.05200
+spam$dollar[y>1]
 
 for (var in c("dollar")) {
   x <- zScores(spam[[var]])
   new_var <- paste(var, "tr", sep = "_")
   spam[[new_var]] <- spam[[var]]
-  spam[[new_var]][x > 5] <- mean(spam[[var]], na.rm = T) + 
-  5*sd(spam[[var]], na.rm = T)
+  spam[[new_var]][x > 1] <- mean(spam[[var]], na.rm = T) + 
+  1*sd(spam[[var]], na.rm = T)
 }
 
 summary(spam$dollar)
 summary(spam$dollar_tr)
 
+# examining the distribution of dollar_tr
+par(mfrow = c(1,2))
+plot(density(spam$dollar_tr),
+     main     = "Total length of words in capitals",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+plot(density(log(spam$dollar_tr+0.00001)),
+     main     = "Total length of words in capitals_log",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+
+skewness(spam$dollar_tr)              
+skewness(log(spam$dollar_tr+0.00001))
+
+spam$dollar_ln <- log(spam$dollar_tr+0.00001) 
+summary(spam)
+
 ```
+
+### `bang`
+```{r}
+ggplot(spam, aes(bang)) +
+          geom_density(na.rm = T,
+                       alpha = 0.15,
+                       fill  = "royalblue",
+                       colour = "grey50") +
+          labs(title = "Number of occurrences of the ! symbol_original") +
+          theme(plot.title = element_text(color = "royalblue4", size = 12, face = "bold"))
+
+summary(spam$bang)
+m <- zScores(spam$bang)
+summary(m)
+
+0.3150*1.5+0.3150
+
+spam$bang[m>1]
+
+for (var in c("bang")) {
+  x <- zScores(spam[[var]])
+  new_var <- paste(var, "tr", sep = "_")
+  spam[[new_var]] <- spam[[var]]
+  spam[[new_var]][x > 1] <- mean(spam[[var]], na.rm = T) + 
+  1*sd(spam[[var]], na.rm = T)
+}
+
+summary(spam$bang)
+summary(spam$bang_tr)
+
+# examining the distribution of bang_tr
+par(mfrow = c(1,2))
+plot(density(spam$bang_tr),
+     main     = "Number of occurrences of the ! symbol_truncated",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+plot(density(log(spam$bang_tr+0.0001)),
+     main     = "Number of occurrences of the ! symbol_log",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+
+skewness(spam$bang_tr)              
+skewness(log(spam$bang_tr+0.0001))
+
+spam$bang_ln <- log(spam$bang_tr+0.0001) 
+summary(spam)
+
+```
+
+
+### `money`
+```{r}
+ggplot(spam, aes(money)) +
+          geom_density(na.rm = T,
+                       alpha = 0.15,
+                       fill  = "royalblue",
+                       colour = "grey50") +
+          labs(title = "Number of occurrences of the word ‘money’_original") +
+          theme(plot.title = element_text(color = "royalblue4", size = 12, face = "bold"))
+
+summary(spam$money)
+n <- zScores(spam$money)
+summary(n)
+
+spam$money[n>1]
+
+for (var in c("money")) {
+  x <- zScores(spam[[var]])
+  new_var <- paste(var, "tr", sep = "_")
+  spam[[new_var]] <- spam[[var]]
+  spam[[new_var]][x > 1] <- mean(spam[[var]], na.rm = T) + 
+  1*sd(spam[[var]], na.rm = T)
+}
+
+summary(spam$money)
+summary(spam$money_tr)
+
+# examining the distribution of money_tr
+par(mfrow = c(1,2))
+plot(density(spam$money_tr),
+     main     = "Number of occurrences of the word ‘money’_truncated",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+plot(density(log(spam$money_tr+0.0001)),
+     main     = "Number of occurrences of the word ‘money’_log",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+
+skewness(spam$money_tr)              
+skewness(log(spam$money_tr+0.0001))
+
+spam$money_ln <- log(spam$money_tr+0.0001) 
+summary(spam)
+```
+
+
+### `n000`
+```{r}
+ggplot(spam, aes(n000)) +
+          geom_density(na.rm = T,
+                       alpha = 0.15,
+                       fill  = "royalblue",
+                       colour = "grey50") +
+          labs(title = "Number of occurrences of the string ‘000’_original") +
+          theme(plot.title = element_text(color = "royalblue4", size = 12, face = "bold"))
+
+summary(spam$n000)
+a <- zScores(spam$n000)
+summary(a)
+
+spam$n000[a>1]
+
+for (var in c("n000")) {
+  x <- zScores(spam[[var]])
+  new_var <- paste(var, "tr", sep = "_")
+  spam[[new_var]] <- spam[[var]]
+  spam[[new_var]][x > 1] <- mean(spam[[var]], na.rm = T) + 
+  1*sd(spam[[var]], na.rm = T)
+}
+
+summary(spam$n000)
+summary(spam$n000_tr)
+
+# examining the distribution of n000_tr
+par(mfrow = c(1,2))
+plot(density(spam$n000_tr),
+     main     = "Number of occurrences of the string ‘000’_truncated",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+plot(density(log(spam$n000_tr+0.0001)),
+     main     = "Number of occurrences of the string ‘000’_log",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+
+skewness(spam$n000_tr)              
+skewness(log(spam$n000_tr+0.0001))
+
+spam$n000_ln <- log(spam$n000_tr+0.0001) 
+summary(spam)
+```
+
+
+### `make`
+```{r}
+ggplot(spam, aes(make)) +
+          geom_density(na.rm = T,
+                       alpha = 0.15,
+                       fill  = "royalblue",
+                       colour = "grey50") +
+          labs(title = "Number of occurrences of the word ‘make’_original") +
+          theme(plot.title = element_text(color = "royalblue4", size = 12, face = "bold"))
+
+summary(spam$make)
+b <- zScores(spam$make)
+summary(b)
+
+spam$make[b>1]
+
+for (var in c("make")) {
+  x <- zScores(spam[[var]])
+  new_var <- paste(var, "tr", sep = "_")
+  spam[[new_var]] <- spam[[var]]
+  spam[[new_var]][x > 1] <- mean(spam[[var]], na.rm = T) + 
+  1*sd(spam[[var]], na.rm = T)
+}
+
+summary(spam$make)
+summary(spam$make_tr)
+
+# examining the distribution of make_tr
+par(mfrow = c(1,2))
+plot(density(spam$make_tr),
+     main     = "Number of occurrences of the word ‘make’_truncated",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+plot(density(log(spam$make_tr+0.0001)),
+     main     = "Number of occurrences of the word ‘make’_log",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+
+skewness(spam$make_tr)              
+skewness(log(spam$make_tr+0.0001))
+
+spam$make_ln <- log(spam$make_tr+0.0001) 
+summary(spam)
+```
+
+
+## Explore the relationships between predictors and the target
+```{r}
+ggplot(spam, aes(y = crl.tot_tr, x = yesno, color = yesno) )+
+  geom_boxplot(coef = 2,  # length of whiskers
+               notch = T, # If TRUE, make a notched box plot. Notches are used to \n
+                                # compare groups / medians
+               notchwidth = 0.5,
+               outlier.stroke = 0.7,  # boldness of outliers 
+               outlier.size   = 1,      
+               outlier.colour = "coral2",  
+               outlier.shape  = 25  # 25 - triangles, nice shape
+               ) +
+  scale_color_brewer(type = "qual", palette = 1) +
+  coord_flip() +
+  labs(title = "Words in capital with Truncated Outliers",
+       caption = "Data: Spam") +
+       theme(plot.title    = element_text(color = "royalblue4", size = 12, face = "bold"),
+             plot.caption  = element_text(face = "italic")
+             )
+
+ggplot(spam, aes(y = make_tr, x = yesno, color = yesno) )+
+  geom_boxplot(coef = 2,  # length of whiskers
+               notch = T, # If TRUE, make a notched box plot. Notches are used to \n
+                                # compare groups / medians
+               notchwidth = 0.5,
+               outlier.stroke = 0.7,  # boldness of outliers 
+               outlier.size   = 1,      
+               outlier.colour = "coral2",  
+               outlier.shape  = 25  # 25 - triangles, nice shape
+               ) +
+  scale_color_brewer(type = "qual", palette = 1) +
+  coord_flip() +
+  labs(title = "make with Truncated Outliers",
+       caption = "Data: Spam") +
+       theme(plot.title    = element_text(color = "royalblue4", size = 12, face = "bold"),
+             plot.caption  = element_text(face = "italic")
+             )
+
+ggplot(spam, aes(y = n000_tr, x = yesno, color = yesno) )+
+  geom_boxplot(coef = 2,  # length of whiskers
+               notch = T, # If TRUE, make a notched box plot. Notches are used to \n
+                                # compare groups / medians
+               notchwidth = 0.5,
+               outlier.stroke = 0.7,  # boldness of outliers 
+               outlier.size   = 1,      
+               outlier.colour = "coral2",  
+               outlier.shape  = 25  # 25 - triangles, nice shape
+               ) +
+  scale_color_brewer(type = "qual", palette = 1) +
+  coord_flip() +
+  labs(title = "n000 with Truncated Outliers",
+       caption = "Data: Spam") +
+       theme(plot.title    = element_text(color = "royalblue4", size = 12, face = "bold"),
+             plot.caption  = element_text(face = "italic")
+             )
+
+
+ggplot(spam, aes(x = bang_tr, fill = yesno)) + 
+          geom_bar(position = "dodge",
+                   show.legend = F) +
+                   #ylim   = c(0,0.04)) +
+          
+          scale_fill_brewer(palette = 7, type = "qual") +
+          labs(title = "The relationship between the occuriencies of money and spam email",
+               caption = "Data: Spam") +
+          theme(plot.title    = element_text(color = "royalblue4", size = 12, face = "bold"),
+                plot.caption  = element_text(face = "italic")
+                 )
+```
+
+
+
+
+
+
 
 
 
