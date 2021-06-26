@@ -360,6 +360,7 @@ summary(spam)
 
 ## Explore the relationships between predictors and the target
 ```{r}
+par(mfrow = c(1,2))
 boxplot(crl.tot_tr~yesno, 
         data = spam,
         names    = c("NO", "YES"),
@@ -367,20 +368,72 @@ boxplot(crl.tot_tr~yesno,
         xlab = "Are They Spam Email?",
         ylab = "Total length of words in capitals",
         main = "The Relationship Between Spam and Length of Words in Capitals",
-        cex.lab  = 0.8,
-        cex.main = 0.8)
+        cex.lab  = 0.5,
+        cex.main = 0.5)
 
 boxplot(dollar_tr~yesno, 
         data = spam,
-        ylim   = c(0,0.5),
+        ylim   = c(0,0.7),
         names    = c("NO", "YES"),
         col  = c("aquamarine4", "coral2"),
         xlab = "Are They Spam Email?",
         ylab = "Number of Occurrences of the $ Symbol",
         main = "The Relationship Between Spam and the Occurrences of the $ Symbol",
-        cex.lab  = 0.8,
-        cex.main = 0.8)
+        cex.lab  = 0.5,
+        cex.main = 0.5)
+
+boxplot(bang_tr~yesno, 
+        data = spam,
+        ylim   = c(0,0.7),
+        names    = c("NO", "YES"),
+        col  = c("aquamarine4", "coral2"),
+        xlab = "Are They Spam Email?",
+        ylab = "Number of Occurrences of the ! Symbol",
+        main = "The Relationship Between Spam and the Occurrences of the ! Symbol",
+        cex.lab  = 0.5,
+        cex.main = 0.5)
+
+boxplot(money_tr~yesno, 
+        data = spam,
+        ylim   = c(0,0.7),
+        names    = c("NO", "YES"),
+        col  = c("aquamarine4", "coral2"),
+        xlab = "Are They Spam Email?",
+        ylab = "Number of Occurrences of the Word ‘money’",
+        main = "The Relationship Between Spam and the Occurrences of the Word ‘money’",
+        cex.lab  = 0.5,
+        cex.main = 0.5)
   
+boxplot(n000_tr~yesno, 
+        data = spam,
+        ylim   = c(0,0.7),
+        names    = c("NO", "YES"),
+        col  = c("aquamarine4", "coral2"),
+        xlab = "Are They Spam Email?",
+        ylab = "Number of Occurrences of the String ‘000’",
+        main = "The Relationship Between Spam and the Occurrences of the String ‘000’",
+        cex.lab  = 0.5,
+        cex.main = 0.5)
+
+boxplot(make_tr~yesno, 
+        data = spam,
+        ylim   = c(0,0.7),
+        names    = c("NO", "YES"),
+        col  = c("aquamarine4", "coral2"),
+        xlab = "Are They Spam Email?",
+        ylab = "Number of Occurrences of the Word ‘make’",
+        main = "The Relationship Between Spam and the Occurrences of the Word ‘make’",
+        cex.lab  = 0.5,
+        cex.main = 0.5)
+
+plot(density(spam$crl.tot_tr[spam$yesno == "y"]), 
+     ylim   = c(0,0.009), 
+     col = "aquamarine4",
+     main   = "Density of crl",
+     cex.main = 0.8)
+lines(density(spam$crl.tot_tr[spam$yesno == "n"]),
+     col    = "coral")
+
 
 ```
 
