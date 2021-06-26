@@ -82,6 +82,7 @@ zScores <- function(var){
 }
 ```
 
+
 ### `crl.tot`
 ```{r}
 ggplot(spam, aes(crl.tot)) +
@@ -139,15 +140,14 @@ summary(spam$dollar)
 y <- zScores(spam$dollar)
 summary(y)
 
-0.05200+0.05200
-spam$dollar[y>1]
+spam$dollar[y>3]
 
 for (var in c("dollar")) {
   x <- zScores(spam[[var]])
   new_var <- paste(var, "tr", sep = "_")
   spam[[new_var]] <- spam[[var]]
-  spam[[new_var]][x > 1] <- mean(spam[[var]], na.rm = T) + 
-  1*sd(spam[[var]], na.rm = T)
+  spam[[new_var]][x > 3] <- mean(spam[[var]], na.rm = T) + 
+  3*sd(spam[[var]], na.rm = T)
 }
 
 summary(spam$dollar)
@@ -186,16 +186,15 @@ summary(spam$bang)
 m <- zScores(spam$bang)
 summary(m)
 
-0.3150*1.5+0.3150
 
-spam$bang[m>1]
+spam$bang[m>3]
 
 for (var in c("bang")) {
   x <- zScores(spam[[var]])
   new_var <- paste(var, "tr", sep = "_")
   spam[[new_var]] <- spam[[var]]
-  spam[[new_var]][x > 1] <- mean(spam[[var]], na.rm = T) + 
-  1*sd(spam[[var]], na.rm = T)
+  spam[[new_var]][x > 3] <- mean(spam[[var]], na.rm = T) + 
+  3*sd(spam[[var]], na.rm = T)
 }
 
 summary(spam$bang)
@@ -235,14 +234,14 @@ summary(spam$money)
 n <- zScores(spam$money)
 summary(n)
 
-spam$money[n>1]
+spam$money[n>3]
 
 for (var in c("money")) {
   x <- zScores(spam[[var]])
   new_var <- paste(var, "tr", sep = "_")
   spam[[new_var]] <- spam[[var]]
-  spam[[new_var]][x > 1] <- mean(spam[[var]], na.rm = T) + 
-  1*sd(spam[[var]], na.rm = T)
+  spam[[new_var]][x > 3] <- mean(spam[[var]], na.rm = T) + 
+  3*sd(spam[[var]], na.rm = T)
 }
 
 summary(spam$money)
@@ -281,14 +280,14 @@ summary(spam$n000)
 a <- zScores(spam$n000)
 summary(a)
 
-spam$n000[a>1]
+spam$n000[a>3]
 
 for (var in c("n000")) {
   x <- zScores(spam[[var]])
   new_var <- paste(var, "tr", sep = "_")
   spam[[new_var]] <- spam[[var]]
-  spam[[new_var]][x > 1] <- mean(spam[[var]], na.rm = T) + 
-  1*sd(spam[[var]], na.rm = T)
+  spam[[new_var]][x > 3] <- mean(spam[[var]], na.rm = T) + 
+  3*sd(spam[[var]], na.rm = T)
 }
 
 summary(spam$n000)
@@ -327,14 +326,14 @@ summary(spam$make)
 b <- zScores(spam$make)
 summary(b)
 
-spam$make[b>1]
+spam$make[b>3]
 
 for (var in c("make")) {
   x <- zScores(spam[[var]])
   new_var <- paste(var, "tr", sep = "_")
   spam[[new_var]] <- spam[[var]]
   spam[[new_var]][x > 1] <- mean(spam[[var]], na.rm = T) + 
-  1*sd(spam[[var]], na.rm = T)
+  3*sd(spam[[var]], na.rm = T)
 }
 
 summary(spam$make)
@@ -361,72 +360,28 @@ summary(spam)
 
 ## Explore the relationships between predictors and the target
 ```{r}
-ggplot(spam, aes(y = crl.tot_tr, x = yesno, color = yesno) )+
-  geom_boxplot(coef = 2,  # length of whiskers
-               notch = T, # If TRUE, make a notched box plot. Notches are used to \n
-                                # compare groups / medians
-               notchwidth = 0.5,
-               outlier.stroke = 0.7,  # boldness of outliers 
-               outlier.size   = 1,      
-               outlier.colour = "coral2",  
-               outlier.shape  = 25  # 25 - triangles, nice shape
-               ) +
-  scale_color_brewer(type = "qual", palette = 1) +
-  coord_flip() +
-  labs(title = "Words in capital with Truncated Outliers",
-       caption = "Data: Spam") +
-       theme(plot.title    = element_text(color = "royalblue4", size = 12, face = "bold"),
-             plot.caption  = element_text(face = "italic")
-             )
+boxplot(crl.tot_tr~yesno, 
+        data = spam,
+        names    = c("NO", "YES"),
+        col  = c("aquamarine4", "coral2"),
+        xlab = "Are They Spam Email?",
+        ylab = "Total length of words in capitals",
+        main = "The Relationship Between Spam and Length of Words in Capitals",
+        cex.lab  = 0.8,
+        cex.main = 0.8)
 
-ggplot(spam, aes(y = make_tr, x = yesno, color = yesno) )+
-  geom_boxplot(coef = 2,  # length of whiskers
-               notch = T, # If TRUE, make a notched box plot. Notches are used to \n
-                                # compare groups / medians
-               notchwidth = 0.5,
-               outlier.stroke = 0.7,  # boldness of outliers 
-               outlier.size   = 1,      
-               outlier.colour = "coral2",  
-               outlier.shape  = 25  # 25 - triangles, nice shape
-               ) +
-  scale_color_brewer(type = "qual", palette = 1) +
-  coord_flip() +
-  labs(title = "make with Truncated Outliers",
-       caption = "Data: Spam") +
-       theme(plot.title    = element_text(color = "royalblue4", size = 12, face = "bold"),
-             plot.caption  = element_text(face = "italic")
-             )
+boxplot(dollar_tr~yesno, 
+        data = spam,
+        ylim   = c(0,0.5),
+        names    = c("NO", "YES"),
+        col  = c("aquamarine4", "coral2"),
+        xlab = "Are They Spam Email?",
+        ylab = "Number of Occurrences of the $ Symbol",
+        main = "The Relationship Between Spam and the Occurrences of the $ Symbol",
+        cex.lab  = 0.8,
+        cex.main = 0.8)
+  
 
-ggplot(spam, aes(y = n000_tr, x = yesno, color = yesno) )+
-  geom_boxplot(coef = 2,  # length of whiskers
-               notch = T, # If TRUE, make a notched box plot. Notches are used to \n
-                                # compare groups / medians
-               notchwidth = 0.5,
-               outlier.stroke = 0.7,  # boldness of outliers 
-               outlier.size   = 1,      
-               outlier.colour = "coral2",  
-               outlier.shape  = 25  # 25 - triangles, nice shape
-               ) +
-  scale_color_brewer(type = "qual", palette = 1) +
-  coord_flip() +
-  labs(title = "n000 with Truncated Outliers",
-       caption = "Data: Spam") +
-       theme(plot.title    = element_text(color = "royalblue4", size = 12, face = "bold"),
-             plot.caption  = element_text(face = "italic")
-             )
-
-
-ggplot(spam, aes(x = bang_tr, fill = yesno)) + 
-          geom_bar(position = "dodge",
-                   show.legend = F) +
-                   #ylim   = c(0,0.04)) +
-          
-          scale_fill_brewer(palette = 7, type = "qual") +
-          labs(title = "The relationship between the occuriencies of money and spam email",
-               caption = "Data: Spam") +
-          theme(plot.title    = element_text(color = "royalblue4", size = 12, face = "bold"),
-                plot.caption  = element_text(face = "italic")
-                 )
 ```
 
 
