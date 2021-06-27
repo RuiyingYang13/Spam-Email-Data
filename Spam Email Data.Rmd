@@ -2,7 +2,9 @@
 title: "Spam Email Data"
 author: "xx"
 date: "23 Juni 2021"
-output: pdf_document
+output:
+  word_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -437,10 +439,199 @@ lines(density(spam$crl.tot_tr[spam$yesno == "n"]),
 
 ```
 
+## Modelling
+
+Firstly, we will divide the Dataset in Trainingset(70% of Dataset) and Testset(30% of Dataset) to avoid overfitting. Furthermore, we define some useful variables and functions.
+```{r}
+train.Index <- sample(1:nrow(spam), round(0.7*nrow(spam)), replace = F) 
+  spam.train <- spam[train.Index,] 
+  spam.test <- spam[-train.Index,] 
+  
+  
+y.train <- spam.train$yesno
+y.test <- spam.test$yesno
+
+y.test.num <- ifelse(y.test == "y", 1,0)
+```
+
+User fuction Accurancy()
+```{r}
+Accuracy <- function(pred, real, threshold = 0.5){
+  predClass <-  ifelse(pred > threshold, 1, 0)
+  acc <- sum(predClass == real) / length(real)
+  return(acc)
+}
+```
+
+User function Brier Score
+```{r}
+Brier_Score <- function(pred, real){
+  RMSE <- sqrt(mean((real - pred)^2))
+  return(RMSE)
+}
+```
+
+## Creating Models
+
+### Logistic Regression
+We have to deal with a classification problem, so logistic regression would be an appropriate method and will be used as a classifier. 
+
+Firstly, we create a model based on letter sequences. Also, we add the total length of words in capitals as a predictor because we think it could be a string indicator for spam.
+```{r}
+letter <- glm(yesno ~ money_ln  + make_ln + crl.tot_ln, 
+              data = spam.train, 
+              family = binomial() )
+pred.letter <- predict(letter, newdata = spam.test, type = "response")
+```
+
+Next we also create a model only based on the occurrences of the symbols $ and !.
+```{r}
+symbol <- glm(yesno ~ dollar_ln + bang_ln, 
+              data = spam.train, 
+              family = binomial() )
+pred.symbol <- predict(symbol, newdata = spam.test, type = "response")
+```
+
+Now we create a model in which the issue of money is important. We also add "n000" because the stirng "000" could be part of a number.
+```{r}
+money <- glm(yesno ~ dollar_ln  + money_ln + n000, 
+            data = spam.train, 
+            family = binomial() )
+pred.money <- predict(money, newdata = spam.test, type = "response")
+```
+
+Lastly, we create a model based on all predictors because all together they give the impression of an e-Mail about how to make money which commonly is spam.
+```{r}
+all_features <- glm(yesno ~ crl.tot_ln + dollar_ln + bang_ln  + money_ln + n000 + make, 
+                  data = spam.train, 
+                  family = binomial() )
+pred.all_features <- predict(all_features, newdata = spam.test, type = "response")
+```
+
+### Logistic Regression with regularisation
+
+We apply the Ridge Regression on the models "letter" and "symbol". After that we use LASSO Regression for the models "money" and "all_features".
+
+Ridge Regression
+```{r}
+features.letter <- c("crl.tot_ln" , "money_ln", "make_ln")
+features.symbol <- c("dollar_ln" , "bang_ln")
+
+X.train.letter <- model.matrix( ~ . -1, data = spam.train[, features.letter])
+X.test.letter  <- model.matrix( ~ . -1, data = spam.test[, features.letter])
+
+X.train.symbol <- model.matrix( ~ . -1, data = spam.train[, features.symbol])
+X.test.symbol <- model.matrix( ~ . -1, data = spam.test[, features.symbol])
+
+letter.ridge <- glmnet(X.train.letter, y.train, alpha= 0, family = "binomial")
+letter.ridge_cv <- cv.glmnet(X.train.letter, y.train, alpha = 0, type.measure = "class", 
+                       lambda = 10^seq(-5, 1, length.out = 100), family="binomial", nfolds = 10)
+
+pred.letter.ridge <- as.vector(predict(letter.ridge, newx = X.test.letter,
+                                       type = "response",
+                                       s = letter.ridge_cv$lambda.min))
+
+symbol.ridge <- glmnet(X.train.symbol, y.train, alpha= 0, family = "binomial")
+symbol.ridge_cv <- cv.glmnet(X.train.symbol, y.train, alpha = 0, type.measure = "class", 
+                       lambda = 10^seq(-5, 1, length.out = 100), family="binomial", nfolds = 10)
+
+pred.symbol.ridge <- as.vector(predict(symbol.ridge, newx = X.test.symbol,
+                                       type = "response",
+                                       s = symbol.ridge_cv$lambda.min))
+```
+
+Lasso Regression
+```{r}
+features.money <- c("dollar_ln", "money_ln" , "n000_ln")
+features.all_features <- c("crl.tot_ln" , "dollar_ln" , "bang_ln" , "money_ln" , "n000_ln" , "make_ln")
+
+X.train.money <- model.matrix( ~ . -1, data = spam.train[, features.money])
+X.test.money  <- model.matrix( ~ . -1, data = spam.test[, features.money])
+
+X.train.all_features <- model.matrix( ~ . -1, data = spam.train[, features.all_features])
+X.test.all_features <- model.matrix( ~ . -1, data = spam.test[, features.all_features])
+
+money.lasso <- glmnet(X.train.money, y.train, alpha= 0, family = "binomial")
+money.lasso_cv <- cv.glmnet(X.train.money, y.train, alpha = 0, type.measure = "class", 
+                       lambda = 10^seq(-5, 1, length.out = 100), family="binomial", nfolds = 10)
+
+pred.money.lasso <- as.vector(predict(money.lasso, newx = X.test.money,
+                                       type = "response",
+                                       s = money.lasso_cv$lambda.min))
+
+all_features.lasso <- glmnet(X.train.all_features, y.train, alpha= 0, family = "binomial")
+all_features.lasso_cv <- cv.glmnet(X.train.all_features, y.train, alpha = 0, type.measure = "class", 
+                       lambda = 10^seq(-5, 1, length.out = 100), family="binomial", nfolds = 10)
+
+pred.all_features.lasso <- as.vector(predict(all_features.lasso, newx = X.test.all_features,
+                                       type = "response",
+                                       s = all_features.lasso_cv$lambda.min))
+```
+
+### Decision Tree
+```{r}
+features_dt <- c("yesno","crl.tot_ln" , "dollar_ln" , "bang_ln" , "money_ln" , "n000_ln" , "make_ln")
+
+train.Index <- caret::createDataPartition(spam$yesno, p = 0.7, list = F)
+dt.spam.train <- spam[ train.Index,]
+dt.spam.test  <- spam[-train.Index,]
+
+y.test.dt.num <- ifelse(dt.spam.test$yesno == "y", 1,0)
+
+spam_dt <- rpart(yesno ~ crl.tot_ln + dollar_ln + bang_ln + money_ln + n000_ln + make_ln , 
+                data = dt.spam.train[,features_dt], 
+                method = "class", 
+                parms = list(split = "information"),  # the splitting index 
+                model = T) 
+
+pred.spam_dt <- predict(spam_dt, newdata = dt.spam.test, type = "prob")[, 2]
+```
+
+## Prediction quality of our models
+
+To check the quality of our models we use the accuracy and the Brier Score.
+
+```{r}
+Accu.letter <- Accuracy(pred = pred.letter, real = y.test.num, threshold = 0.5)
+Brier_Score.letter <- Brier_Score(pred.letter, y.test.num)
+
+Accu.symbol <- Accuracy(pred = pred.symbol, real = y.test.num, threshold = 0.5)
+Brier_Score.symbol <- Brier_Score(pred.symbol, y.test.num)
+
+Accu.money <- Accuracy(pred = pred.money, real = y.test.num, threshold = 0.5)
+Brier_Score.money <- Brier_Score(pred.money, y.test.num)
+
+Accu.all_features <- Accuracy(pred = pred.all_features, real = y.test.num, threshold = 0.5)
+Brier_Score.all_features <- Brier_Score(pred.all_features, y.test.num)
+
+Accu.letter.ridge <- Accuracy(pred = pred.letter.ridge, real = y.test.num, threshold = 0.5)
+Brier_Score.letter.ridge <- Brier_Score(pred.letter.ridge, y.test.num)
+
+Accu.symbol.ridge <- Accuracy(pred = pred.symbol.ridge, real = y.test.num, threshold = 0.5)
+Brier_Score.symbol.ridge <- Brier_Score(pred.symbol.ridge, y.test.num)
+
+Accu.money.lasso <- Accuracy(pred = pred.money.lasso, real = y.test.num, threshold = 0.5)
+Brier_Score.money.lasso <- Brier_Score(pred.money.lasso, y.test.num)
+
+Accu.all_features.lasso <- Accuracy(pred = pred.all_features.lasso, real = y.test.num, threshold = 0.5)
+Brier_Score.all_features.lasso <- Brier_Score(pred.all_features.lasso, y.test.num)
+
+Accu.spam_dt <- Accuracy(pred = pred.spam_dt, real = y.test.dt.num, threshold = 0.5)
+Brier_Score.spam_dt <- Brier_Score(pred.spam_dt, y.test.dt.num)
+
+Quality_table <- data.frame(c("Letter", "Symbol", "Money","All features","Letter Ridge", "Symbol Ridge", "Money LASSO", "All Features LASSO", "Decision Tree Spam"))
+names(Quality_table) <- "Models"
+
+Quality_table["Accurecy"] <- c(Accu.letter,Accu.symbol,Accu.money, Accu.all_features, Accu.letter.ridge, Accu.symbol.ridge, Accu.money.lasso, Accu.all_features.lasso ,Accu.spam_dt )
+
+Quality_table["Classification Error"] <- c(1-Accu.letter,1-Accu.symbol,1-Accu.money, 1-Accu.all_features, 1-Accu.letter.ridge, 1-Accu.symbol.ridge, 1-Accu.money.lasso, 1-Accu.all_features.lasso , 1-Accu.spam_dt )
+
+Quality_table["Brier Score"] <- c(Brier_Score.letter,Brier_Score.symbol,Brier_Score.money, Brier_Score.all_features, Brier_Score.letter.ridge, Brier_Score.symbol.ridge, Brier_Score.money.lasso, Brier_Score.all_features.lasso ,Brier_Score.spam_dt )
+
+Quality_table
 
 
-
-
+```
 
 
 
