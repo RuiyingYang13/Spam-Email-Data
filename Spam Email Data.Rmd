@@ -1181,8 +1181,8 @@ pred.all_features.lasso <- as.vector(predict(all_features.lasso, newx = X.test.a
 ### Decision Tree
 ```{r}
 features_dt <- c("yesno","crl.tot_ln" , "dollar_ln" , "bang_ln" , "money_ln" , "n000_ln" , "make_ln")
-
-train.Index <- caret::createDataPartition(spam$yesno, p = 0.7, list = F)
+train.Index <-  sample(1:nrow(spam), round(0.7*nrow(spam)), replace = F)
+#train.Index <- caret::createDataPartition(spam$yesno, p = 0.7, list = F)
 dt.spam.train <- spam[ train.Index,]
 dt.spam.test  <- spam[-train.Index,]
 
@@ -1243,7 +1243,3 @@ Quality_table
 
 ```
 
-
-
-
->>>>>>> b1b0983fde02239b62f43f9c0022defdc595427b
