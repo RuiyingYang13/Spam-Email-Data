@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 title: "Spam Email Data"
 author: "xx"
@@ -118,11 +119,11 @@ par(mfrow = c(1,2))
 plot(density(spam$crl.tot_tr),
      main     = "Total length of words in capitals_tr",
      col      = "royalblue4", 
-     cex.main = 0.7)
+     cex.main = 0.6)
 plot(density(log(spam$crl.tot_tr)),
      main     = "Total length of words in capitals_log",
      col      = "royalblue4", 
-     cex.main = 0.7)
+     cex.main = 0.6)
 spam$crl.tot_ln <- log(spam$crl.tot_tr) 
 summary(spam)
 
@@ -160,11 +161,11 @@ par(mfrow = c(1,2))
 plot(density(spam$dollar_tr),
      main     = "Number of occurrences of the $ symbol_tr",
      col      = "royalblue4", 
-     cex.main = 0.7)
+     cex.main = 0.6)
 plot(density(log(spam$dollar_tr+0.00001)),
      main     = "Number of occurrences of the $ symbol_log",
      col      = "royalblue4", 
-     cex.main = 0.7)
+     cex.main = 0.6)
 
 skewness(spam$dollar_tr)              
 skewness(log(spam$dollar_tr+0.00001))
@@ -207,11 +208,11 @@ par(mfrow = c(1,2))
 plot(density(spam$bang_tr),
      main     = "Number of occurrences of the ! symbol_tr",
      col      = "royalblue4", 
-     cex.main = 0.7)
+     cex.main = 0.6)
 plot(density(log(spam$bang_tr+0.0001)),
      main     = "Number of occurrences of the ! symbol_log",
      col      = "royalblue4", 
-     cex.main = 0.7)
+     cex.main = 0.6)
 
 skewness(spam$bang_tr)              
 skewness(log(spam$bang_tr+0.0001))
@@ -252,13 +253,13 @@ summary(spam$money_tr)
 # examining the distribution of money_tr
 par(mfrow = c(1,2))
 plot(density(spam$money_tr),
-     main     = "Number of occurrences of the word ‘money’_truncated",
+     main     = "Number of occurrences of the word ‘money’_tr",
      col      = "royalblue4", 
-     cex.main = 0.7)
+     cex.main = 0.6)
 plot(density(log(spam$money_tr+0.0001)),
      main     = "Number of occurrences of the word ‘money’_log",
      col      = "royalblue4", 
-     cex.main = 0.7)
+     cex.main = 0.6)
 
 skewness(spam$money_tr)              
 skewness(log(spam$money_tr+0.0001))
@@ -298,13 +299,13 @@ summary(spam$n000_tr)
 # examining the distribution of n000_tr
 par(mfrow = c(1,2))
 plot(density(spam$n000_tr),
-     main     = "Number of occurrences of the string ‘000’_truncated",
+     main     = "Number of occurrences of the string ‘000’_tr",
      col      = "royalblue4", 
-     cex.main = 0.7)
+     cex.main = 0.6)
 plot(density(log(spam$n000_tr+0.0001)),
      main     = "Number of occurrences of the string ‘000’_log",
      col      = "royalblue4", 
-     cex.main = 0.7)
+     cex.main = 0.6)
 
 skewness(spam$n000_tr)              
 skewness(log(spam$n000_tr+0.0001))
@@ -344,13 +345,13 @@ summary(spam$make_tr)
 # examining the distribution of make_tr
 par(mfrow = c(1,2))
 plot(density(spam$make_tr),
-     main     = "Number of occurrences of the word ‘make’_truncated",
+     main     = "Number of occurrences of the word ‘make’_tr",
      col      = "royalblue4", 
-     cex.main = 0.7)
+     cex.main = 0.6)
 plot(density(log(spam$make_tr+0.0001)),
      main     = "Number of occurrences of the word ‘make’_log",
      col      = "royalblue4", 
-     cex.main = 0.7)
+     cex.main = 0.6)
 
 skewness(spam$make_tr)              
 skewness(log(spam$make_tr+0.0001))
@@ -606,3 +607,643 @@ Quality_table
 
 
 
+=======
+---
+title: "Spam Email Data"
+author: "xx"
+date: "23 Juni 2021"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, 
+                      results = 'all', 
+                      message = FALSE, 
+                      warning = F, 
+                      cache = FALSE, 
+                      error=TRUE)
+```
+
+# Task 1, Conduct Exploratory Data Analysis (EDA), inspect the data set and preprocess the data
+## Treat missing values, if applicable
+```{r}
+getwd()
+```
+
+```{r}
+# Clean environment 
+ rm(list = ls())  
+
+# Installing packages 
+# install.packages("pacman", repos = "http://cran.us.r-project.org")
+library(pacman)
+library("RColorBrewer")
+p_load(ggplot2,    
+       cowplot,   
+       stargazer, 
+       glmnet,    
+       pROC,      
+       caret,       
+       rpart,        
+       rpart.plot,
+       moments)
+
+# Reading in the data
+spam <- read.csv("spam7.csv", sep = ",", stringsAsFactors = T, header = T)
+str(spam)
+summary(spam)
+dollar_t <- table(spam$dollar == 0.00000)
+bang_t <- table(spam$bang == 0.0000)
+money_t <- table(spam$money == 0.00000)
+n000_t <- table(spam$n000 == 0.0000)
+make_t <- table(spam$make == 0.0000)
+
+dollar_t 
+bang_t 
+money_t 
+n000_t 
+make_t 
+
+
+# Inspect the data for explicit and implicit missing values 
+# find explicit NAs
+colSums(is.na(spam))
+# find implicit NAs through empty cells
+apply(spam, 2, function(g) sum(g == "")) 
+```
+*We can see from the results that there are many zeros in the data, they do not seem to be missing values, so we do not treat them. Other than that, there are no explicit or implicit NAs.*
+
+## Handle sparse classes of categorical predictors, if applicable
+```{r}
+spam_categorical <- spam[,"yesno"]
+table(spam_categorical)
+```
+*There is no need to do any changes to this categorical predictors.*
+
+## Take care of outliers and skewed distributions, if applicable
+For this task, only continuous variables need to be considered.
+To treat outliers we will use `zScores` function:
+```{r}
+zScores <- function(var){
+    mu <- mean(var)
+    sd <-  sd(var)
+    scores <- (var - mu)/sd
+    return(scores)
+}
+```
+
+
+### `crl.tot`
+```{r}
+ggplot(spam, aes(crl.tot)) +
+          geom_density(na.rm = T,
+                       alpha = 0.15,
+                       fill  = "royalblue",
+                       colour = "grey50") +
+          labs(title = "Total length of words in capitals_original") +
+          theme(plot.title = element_text(color = "royalblue4", size = 12, face = "bold"))
+
+summary(spam$crl.tot)
+x <- zScores(spam$crl.tot)
+summary(x)
+
+spam$crl.tot[x>3]
+spam$crl.tot[x>5]
+
+for (var in c("crl.tot")) {
+  x <- zScores(spam[[var]])
+  new_var <- paste(var, "tr", sep = "_")
+  spam[[new_var]] <- spam[[var]]
+  spam[[new_var]][x > 3] <- mean(spam[[var]], na.rm = T) + 
+  3*sd(spam[[var]], na.rm = T)
+}
+
+summary(spam$crl.tot)
+summary(spam$crl.tot_tr)
+
+# examining the distribution of crl.tot_tr
+par(mfrow = c(1,2))
+plot(density(spam$crl.tot_tr),
+     main     = "Total length of words in capitals_truncated",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+plot(density(log(spam$crl.tot_tr)),
+     main     = "Total length of words in capitals_log",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+spam$crl.tot_ln <- log(spam$crl.tot_tr) 
+summary(spam)
+
+```
+
+### `dollar`
+```{r}
+ggplot(spam, aes(dollar)) +
+          geom_density(na.rm = T,
+                       alpha = 0.15,
+                       fill  = "royalblue",
+                       colour = "grey50") +
+          labs(title = "Number of occurrences of the $ symbol_original") +
+          theme(plot.title = element_text(color = "royalblue4", size = 12, face = "bold"))
+
+summary(spam$dollar)
+y <- zScores(spam$dollar)
+summary(y)
+
+spam$dollar[y>3]
+
+for (var in c("dollar")) {
+  x <- zScores(spam[[var]])
+  new_var <- paste(var, "tr", sep = "_")
+  spam[[new_var]] <- spam[[var]]
+  spam[[new_var]][x > 3] <- mean(spam[[var]], na.rm = T) + 
+  3*sd(spam[[var]], na.rm = T)
+}
+
+summary(spam$dollar)
+summary(spam$dollar_tr)
+
+# examining the distribution of dollar_tr
+par(mfrow = c(1,2))
+plot(density(spam$dollar_tr),
+     main     = "Total length of words in capitals",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+plot(density(log(spam$dollar_tr+0.00001)),
+     main     = "Total length of words in capitals_log",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+
+skewness(spam$dollar_tr)              
+skewness(log(spam$dollar_tr+0.00001))
+
+spam$dollar_ln <- log(spam$dollar_tr+0.00001) 
+summary(spam)
+
+```
+
+### `bang`
+```{r}
+ggplot(spam, aes(bang)) +
+          geom_density(na.rm = T,
+                       alpha = 0.15,
+                       fill  = "royalblue",
+                       colour = "grey50") +
+          labs(title = "Number of occurrences of the ! symbol_original") +
+          theme(plot.title = element_text(color = "royalblue4", size = 12, face = "bold"))
+
+summary(spam$bang)
+m <- zScores(spam$bang)
+summary(m)
+
+
+spam$bang[m>3]
+
+for (var in c("bang")) {
+  x <- zScores(spam[[var]])
+  new_var <- paste(var, "tr", sep = "_")
+  spam[[new_var]] <- spam[[var]]
+  spam[[new_var]][x > 3] <- mean(spam[[var]], na.rm = T) + 
+  3*sd(spam[[var]], na.rm = T)
+}
+
+summary(spam$bang)
+summary(spam$bang_tr)
+
+# examining the distribution of bang_tr
+par(mfrow = c(1,2))
+plot(density(spam$bang_tr),
+     main     = "Number of occurrences of the ! symbol_truncated",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+plot(density(log(spam$bang_tr+0.0001)),
+     main     = "Number of occurrences of the ! symbol_log",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+
+skewness(spam$bang_tr)              
+skewness(log(spam$bang_tr+0.0001))
+
+spam$bang_ln <- log(spam$bang_tr+0.0001) 
+summary(spam)
+
+```
+
+
+### `money`
+```{r}
+ggplot(spam, aes(money)) +
+          geom_density(na.rm = T,
+                       alpha = 0.15,
+                       fill  = "royalblue",
+                       colour = "grey50") +
+          labs(title = "Number of occurrences of the word ‘money’_original") +
+          theme(plot.title = element_text(color = "royalblue4", size = 12, face = "bold"))
+
+summary(spam$money)
+n <- zScores(spam$money)
+summary(n)
+
+spam$money[n>3]
+
+for (var in c("money")) {
+  x <- zScores(spam[[var]])
+  new_var <- paste(var, "tr", sep = "_")
+  spam[[new_var]] <- spam[[var]]
+  spam[[new_var]][x > 3] <- mean(spam[[var]], na.rm = T) + 
+  3*sd(spam[[var]], na.rm = T)
+}
+
+summary(spam$money)
+summary(spam$money_tr)
+
+# examining the distribution of money_tr
+par(mfrow = c(1,2))
+plot(density(spam$money_tr),
+     main     = "Number of occurrences of the word ‘money’_truncated",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+plot(density(log(spam$money_tr+0.0001)),
+     main     = "Number of occurrences of the word ‘money’_log",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+
+skewness(spam$money_tr)              
+skewness(log(spam$money_tr+0.0001))
+
+spam$money_ln <- log(spam$money_tr+0.0001) 
+summary(spam)
+```
+
+
+### `n000`
+```{r}
+ggplot(spam, aes(n000)) +
+          geom_density(na.rm = T,
+                       alpha = 0.15,
+                       fill  = "royalblue",
+                       colour = "grey50") +
+          labs(title = "Number of occurrences of the string ‘000’_original") +
+          theme(plot.title = element_text(color = "royalblue4", size = 12, face = "bold"))
+
+summary(spam$n000)
+a <- zScores(spam$n000)
+summary(a)
+
+spam$n000[a>3]
+
+for (var in c("n000")) {
+  x <- zScores(spam[[var]])
+  new_var <- paste(var, "tr", sep = "_")
+  spam[[new_var]] <- spam[[var]]
+  spam[[new_var]][x > 3] <- mean(spam[[var]], na.rm = T) + 
+  3*sd(spam[[var]], na.rm = T)
+}
+
+summary(spam$n000)
+summary(spam$n000_tr)
+
+# examining the distribution of n000_tr
+par(mfrow = c(1,2))
+plot(density(spam$n000_tr),
+     main     = "Number of occurrences of the string ‘000’_truncated",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+plot(density(log(spam$n000_tr+0.0001)),
+     main     = "Number of occurrences of the string ‘000’_log",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+
+skewness(spam$n000_tr)              
+skewness(log(spam$n000_tr+0.0001))
+
+spam$n000_ln <- log(spam$n000_tr+0.0001) 
+summary(spam)
+```
+
+
+### `make`
+```{r}
+ggplot(spam, aes(make)) +
+          geom_density(na.rm = T,
+                       alpha = 0.15,
+                       fill  = "royalblue",
+                       colour = "grey50") +
+          labs(title = "Number of occurrences of the word ‘make’_original") +
+          theme(plot.title = element_text(color = "royalblue4", size = 12, face = "bold"))
+
+summary(spam$make)
+b <- zScores(spam$make)
+summary(b)
+
+spam$make[b>3]
+
+for (var in c("make")) {
+  x <- zScores(spam[[var]])
+  new_var <- paste(var, "tr", sep = "_")
+  spam[[new_var]] <- spam[[var]]
+  spam[[new_var]][x > 1] <- mean(spam[[var]], na.rm = T) + 
+  3*sd(spam[[var]], na.rm = T)
+}
+
+summary(spam$make)
+summary(spam$make_tr)
+
+# examining the distribution of make_tr
+par(mfrow = c(1,2))
+plot(density(spam$make_tr),
+     main     = "Number of occurrences of the word ‘make’_truncated",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+plot(density(log(spam$make_tr+0.0001)),
+     main     = "Number of occurrences of the word ‘make’_log",
+     col      = "royalblue4", 
+     cex.main = 0.7)
+
+skewness(spam$make_tr)              
+skewness(log(spam$make_tr+0.0001))
+
+spam$make_ln <- log(spam$make_tr+0.0001) 
+summary(spam)
+```
+
+
+## Explore the relationships between predictors and the target
+```{r}
+par(mfrow = c(1,2))
+boxplot(crl.tot_tr~yesno, 
+        data = spam,
+        names    = c("NO", "YES"),
+        col  = c("aquamarine4", "coral2"),
+        xlab = "Are They Spam Email?",
+        ylab = "Total length of words in capitals",
+        main = "The Relationship Between Spam and Length of Words in Capitals",
+        cex.lab  = 0.5,
+        cex.main = 0.5)
+
+boxplot(dollar_tr~yesno, 
+        data = spam,
+        ylim   = c(0,0.7),
+        names    = c("NO", "YES"),
+        col  = c("aquamarine4", "coral2"),
+        xlab = "Are They Spam Email?",
+        ylab = "Number of Occurrences of the $ Symbol",
+        main = "The Relationship Between Spam and the Occurrences of the $ Symbol",
+        cex.lab  = 0.5,
+        cex.main = 0.5)
+
+boxplot(bang_tr~yesno, 
+        data = spam,
+        ylim   = c(0,0.7),
+        names    = c("NO", "YES"),
+        col  = c("aquamarine4", "coral2"),
+        xlab = "Are They Spam Email?",
+        ylab = "Number of Occurrences of the ! Symbol",
+        main = "The Relationship Between Spam and the Occurrences of the ! Symbol",
+        cex.lab  = 0.5,
+        cex.main = 0.5)
+
+boxplot(money_tr~yesno, 
+        data = spam,
+        ylim   = c(0,0.7),
+        names    = c("NO", "YES"),
+        col  = c("aquamarine4", "coral2"),
+        xlab = "Are They Spam Email?",
+        ylab = "Number of Occurrences of the Word ‘money’",
+        main = "The Relationship Between Spam and the Occurrences of the Word ‘money’",
+        cex.lab  = 0.5,
+        cex.main = 0.5)
+  
+boxplot(n000_tr~yesno, 
+        data = spam,
+        ylim   = c(0,0.7),
+        names    = c("NO", "YES"),
+        col  = c("aquamarine4", "coral2"),
+        xlab = "Are They Spam Email?",
+        ylab = "Number of Occurrences of the String ‘000’",
+        main = "The Relationship Between Spam and the Occurrences of the String ‘000’",
+        cex.lab  = 0.5,
+        cex.main = 0.5)
+
+boxplot(make_tr~yesno, 
+        data = spam,
+        ylim   = c(0,0.7),
+        names    = c("NO", "YES"),
+        col  = c("aquamarine4", "coral2"),
+        xlab = "Are They Spam Email?",
+        ylab = "Number of Occurrences of the Word ‘make’",
+        main = "The Relationship Between Spam and the Occurrences of the Word ‘make’",
+        cex.lab  = 0.5,
+        cex.main = 0.5)
+
+plot(density(spam$crl.tot_tr[spam$yesno == "y"]), 
+     ylim   = c(0,0.009), 
+     col = "aquamarine4",
+     main   = "Density of crl",
+     cex.main = 0.8)
+lines(density(spam$crl.tot_tr[spam$yesno == "n"]),
+     col    = "coral")
+
+
+```
+
+## Modelling
+
+Firstly, we will divide the Dataset in Trainingset(70% of Dataset) and Testset(30% of Dataset) to avoid overfitting. Furthermore, we define some useful variables and functions.
+```{r}
+train.Index <- sample(1:nrow(spam), round(0.7*nrow(spam)), replace = F) 
+  spam.train <- spam[train.Index,] 
+  spam.test <- spam[-train.Index,] 
+  
+  
+y.train <- spam.train$yesno
+y.test <- spam.test$yesno
+
+y.test.num <- ifelse(y.test == "y", 1,0)
+```
+
+User fuction Accurancy()
+```{r}
+Accuracy <- function(pred, real, threshold = 0.5){
+  predClass <-  ifelse(pred > threshold, 1, 0)
+  acc <- sum(predClass == real) / length(real)
+  return(acc)
+}
+```
+
+User function Brier Score
+```{r}
+Brier_Score <- function(pred, real){
+  RMSE <- sqrt(mean((real - pred)^2))
+  return(RMSE)
+}
+```
+
+## Creating Models
+
+### Logistic Regression
+We have to deal with a classification problem, so logistic regression would be an appropriate method and will be used as a classifier. 
+
+Firstly, we create a model based on letter sequences. Also, we add the total length of words in capitals as a predictor because we think it could be a string indicator for spam.
+```{r}
+letter <- glm(yesno ~ money_ln  + make_ln + crl.tot_ln, 
+              data = spam.train, 
+              family = binomial() )
+pred.letter <- predict(letter, newdata = spam.test, type = "response")
+```
+
+Next we also create a model only based on the occurrences of the symbols $ and !.
+```{r}
+symbol <- glm(yesno ~ dollar_ln + bang_ln, 
+              data = spam.train, 
+              family = binomial() )
+pred.symbol <- predict(symbol, newdata = spam.test, type = "response")
+```
+
+Now we create a model in which the issue of money is important. We also add "n000" because the stirng "000" could be part of a number.
+```{r}
+money <- glm(yesno ~ dollar_ln  + money_ln + n000, 
+            data = spam.train, 
+            family = binomial() )
+pred.money <- predict(money, newdata = spam.test, type = "response")
+```
+
+Lastly, we create a model based on all predictors because all together they give the impression of an e-Mail about how to make money which commonly is spam.
+```{r}
+all_features <- glm(yesno ~ crl.tot_ln + dollar_ln + bang_ln  + money_ln + n000 + make, 
+                  data = spam.train, 
+                  family = binomial() )
+pred.all_features <- predict(all_features, newdata = spam.test, type = "response")
+```
+
+### Logistic Regression with regularisation
+
+We apply the Ridge Regression on the models "letter" and "symbol". After that we use LASSO Regression for the models "money" and "all_features".
+
+Ridge Regression
+```{r}
+features.letter <- c("crl.tot_ln" , "money_ln", "make_ln")
+features.symbol <- c("dollar_ln" , "bang_ln")
+
+X.train.letter <- model.matrix( ~ . -1, data = spam.train[, features.letter])
+X.test.letter  <- model.matrix( ~ . -1, data = spam.test[, features.letter])
+
+X.train.symbol <- model.matrix( ~ . -1, data = spam.train[, features.symbol])
+X.test.symbol <- model.matrix( ~ . -1, data = spam.test[, features.symbol])
+
+letter.ridge <- glmnet(X.train.letter, y.train, alpha= 0, family = "binomial")
+letter.ridge_cv <- cv.glmnet(X.train.letter, y.train, alpha = 0, type.measure = "class", 
+                       lambda = 10^seq(-5, 1, length.out = 100), family="binomial", nfolds = 10)
+
+pred.letter.ridge <- as.vector(predict(letter.ridge, newx = X.test.letter,
+                                       type = "response",
+                                       s = letter.ridge_cv$lambda.min))
+
+symbol.ridge <- glmnet(X.train.symbol, y.train, alpha= 0, family = "binomial")
+symbol.ridge_cv <- cv.glmnet(X.train.symbol, y.train, alpha = 0, type.measure = "class", 
+                       lambda = 10^seq(-5, 1, length.out = 100), family="binomial", nfolds = 10)
+
+pred.symbol.ridge <- as.vector(predict(symbol.ridge, newx = X.test.symbol,
+                                       type = "response",
+                                       s = symbol.ridge_cv$lambda.min))
+```
+
+Lasso Regression
+```{r}
+features.money <- c("dollar_ln", "money_ln" , "n000_ln")
+features.all_features <- c("crl.tot_ln" , "dollar_ln" , "bang_ln" , "money_ln" , "n000_ln" , "make_ln")
+
+X.train.money <- model.matrix( ~ . -1, data = spam.train[, features.money])
+X.test.money  <- model.matrix( ~ . -1, data = spam.test[, features.money])
+
+X.train.all_features <- model.matrix( ~ . -1, data = spam.train[, features.all_features])
+X.test.all_features <- model.matrix( ~ . -1, data = spam.test[, features.all_features])
+
+money.lasso <- glmnet(X.train.money, y.train, alpha= 0, family = "binomial")
+money.lasso_cv <- cv.glmnet(X.train.money, y.train, alpha = 0, type.measure = "class", 
+                       lambda = 10^seq(-5, 1, length.out = 100), family="binomial", nfolds = 10)
+
+pred.money.lasso <- as.vector(predict(money.lasso, newx = X.test.money,
+                                       type = "response",
+                                       s = money.lasso_cv$lambda.min))
+
+all_features.lasso <- glmnet(X.train.all_features, y.train, alpha= 0, family = "binomial")
+all_features.lasso_cv <- cv.glmnet(X.train.all_features, y.train, alpha = 0, type.measure = "class", 
+                       lambda = 10^seq(-5, 1, length.out = 100), family="binomial", nfolds = 10)
+
+pred.all_features.lasso <- as.vector(predict(all_features.lasso, newx = X.test.all_features,
+                                       type = "response",
+                                       s = all_features.lasso_cv$lambda.min))
+```
+
+### Decision Tree
+```{r}
+features_dt <- c("yesno","crl.tot_ln" , "dollar_ln" , "bang_ln" , "money_ln" , "n000_ln" , "make_ln")
+
+train.Index <- caret::createDataPartition(spam$yesno, p = 0.7, list = F)
+dt.spam.train <- spam[ train.Index,]
+dt.spam.test  <- spam[-train.Index,]
+
+y.test.dt.num <- ifelse(dt.spam.test$yesno == "y", 1,0)
+
+spam_dt <- rpart(yesno ~ crl.tot_ln + dollar_ln + bang_ln + money_ln + n000_ln + make_ln , 
+                data = dt.spam.train[,features_dt], 
+                method = "class", 
+                parms = list(split = "information"),  # the splitting index 
+                model = T) 
+
+pred.spam_dt <- predict(spam_dt, newdata = dt.spam.test, type = "prob")[, 2]
+```
+
+## Prediction quality of our models
+
+To check the quality of our models we use the accuracy and the Brier Score.
+
+```{r}
+Accu.letter <- Accuracy(pred = pred.letter, real = y.test.num, threshold = 0.5)
+Brier_Score.letter <- Brier_Score(pred.letter, y.test.num)
+
+Accu.symbol <- Accuracy(pred = pred.symbol, real = y.test.num, threshold = 0.5)
+Brier_Score.symbol <- Brier_Score(pred.symbol, y.test.num)
+
+Accu.money <- Accuracy(pred = pred.money, real = y.test.num, threshold = 0.5)
+Brier_Score.money <- Brier_Score(pred.money, y.test.num)
+
+Accu.all_features <- Accuracy(pred = pred.all_features, real = y.test.num, threshold = 0.5)
+Brier_Score.all_features <- Brier_Score(pred.all_features, y.test.num)
+
+Accu.letter.ridge <- Accuracy(pred = pred.letter.ridge, real = y.test.num, threshold = 0.5)
+Brier_Score.letter.ridge <- Brier_Score(pred.letter.ridge, y.test.num)
+
+Accu.symbol.ridge <- Accuracy(pred = pred.symbol.ridge, real = y.test.num, threshold = 0.5)
+Brier_Score.symbol.ridge <- Brier_Score(pred.symbol.ridge, y.test.num)
+
+Accu.money.lasso <- Accuracy(pred = pred.money.lasso, real = y.test.num, threshold = 0.5)
+Brier_Score.money.lasso <- Brier_Score(pred.money.lasso, y.test.num)
+
+Accu.all_features.lasso <- Accuracy(pred = pred.all_features.lasso, real = y.test.num, threshold = 0.5)
+Brier_Score.all_features.lasso <- Brier_Score(pred.all_features.lasso, y.test.num)
+
+Accu.spam_dt <- Accuracy(pred = pred.spam_dt, real = y.test.dt.num, threshold = 0.5)
+Brier_Score.spam_dt <- Brier_Score(pred.spam_dt, y.test.dt.num)
+
+Quality_table <- data.frame(c("Letter", "Symbol", "Money","All features","Letter Ridge", "Symbol Ridge", "Money LASSO", "All Features LASSO", "Decision Tree Spam"))
+names(Quality_table) <- "Models"
+
+Quality_table["Accurecy"] <- c(Accu.letter,Accu.symbol,Accu.money, Accu.all_features, Accu.letter.ridge, Accu.symbol.ridge, Accu.money.lasso, Accu.all_features.lasso ,Accu.spam_dt )
+
+Quality_table["Classification Error"] <- c(1-Accu.letter,1-Accu.symbol,1-Accu.money, 1-Accu.all_features, 1-Accu.letter.ridge, 1-Accu.symbol.ridge, 1-Accu.money.lasso, 1-Accu.all_features.lasso , 1-Accu.spam_dt )
+
+Quality_table["Brier Score"] <- c(Brier_Score.letter,Brier_Score.symbol,Brier_Score.money, Brier_Score.all_features, Brier_Score.letter.ridge, Brier_Score.symbol.ridge, Brier_Score.money.lasso, Brier_Score.all_features.lasso ,Brier_Score.spam_dt )
+
+Quality_table
+
+
+```
+
+
+
+
+>>>>>>> b1b0983fde02239b62f43f9c0022defdc595427b
